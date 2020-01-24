@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .utils import ImageModel
+# from .utils import ImageCollector
 
 # Create your views here.
 def index(request):
