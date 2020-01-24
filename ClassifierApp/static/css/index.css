@@ -1,0 +1,38 @@
+body{
+    font-family: 'Josefin Sans', sans-serif;
+    font-size:20px;
+}
+section{
+    margin: 10px 0px;
+}
+#section-header{
+    text-align: center;
+    font-size:40px;
+    color:cadetblue;
+}
+/* section newdata */
+#section-newdata{
+   
+}
+#div-newdata{
+    text-align: center;
+}
+#form-name{
+    margin-bottom: 5px;
+}
+#form-newdata{
+    width: 60%;
+    margin: 0 auto; 
+}
+#form-newdata label{
+    padding-top:5px;
+    padding-bottom: 6px;
+}
+#form-newdata input{
+    text-align: center;
+}
+#newdata-noti{
+    color:red;
+    font-style: italic;
+}
+/* -- section newdata */

@@ -7,15 +7,24 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 from fastai.vision import *
-
-chromepath = "/usr/bin/chromedriver"
-chromeOptions = webdriver.ChromeOptions()
-chromeOptions.add_argument("--headless")
-driver = webdriver.Chrome(chromepath, chrome_options=chromeOptions)
-wait = WebDriverWait(driver, 5)
+import platform
+import shutil
 
 
 
+def init_driver_wait():
+    currOS = platform.system()
+    if currOS == 'Windows':
+        chromepath = "chromedriver.exe"
+    else:
+        chromepath = "/usr/bin/chromedriver"
+    # chromeOptions = webdriver.ChromeOptions()
+    # chromeOptions.add_argument("--headless")
+    # driver = webdriver.Chrome(chromepath, chrome_options=chromeOptions)
+    driver = webdriver.Chrome(chromepath)
+    wait = WebDriverWait(driver, 5)
+    return driver, wait
+    
 def get_image_urls(driver, wait, image_class):
     driver.get('https://images.google.com/')
     driver.find_element_by_css_selector(
@@ -23,7 +32,7 @@ def get_image_urls(driver, wait, image_class):
     driver.find_element_by_css_selector(
         '#sbtc > button > div > span > svg').click()
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    sleep(0.5)
+    sleep(1)
     urls = list(map(lambda x: x.get_attribute('data-src'), driver.find_elements_by_css_selector('.rg_i')))
     urls = [x for x in urls if x is not None]
     print('Image Class: {}, Result: {}'.format(image_class, len(urls)))
@@ -45,24 +54,33 @@ def exportURLs(img_urls, path, type='csv'):
 def input_cmd():
     dataset_name = input('Dataset name: ')
     n = int(input('Number of image classes: '))
+    img_classes = []
     for iclass in range(n):
         img_classes.append(input('Class {}: '.format(iclass+1)))
     return dataset_name, n, img_classes
 
 def input_file():
-    with open('input.txt','r') as inputfile:
+    with open('ImageCollector_Input.txt','r') as inputfile:
         dataset_name = inputfile.readline().rstrip()
         print('Dataset name: ', dataset_name)
         n = int(inputfile.readline().rstrip())
         print('Number of image classes: ', n)
+        img_classes = []
         for iclass in range(n):
             img_classes.append(inputfile.readline().rstrip())
             print('Class {}: {}'.format(iclass+1, img_classes[iclass]))
         inputfile.close()
-        return dataset_name, n, img_classes 
+        return dataset_name, n, img_classes
+def delete_dataset(dataset_name):
+    try:
+        print('Deleting dataset {}'.format(dataset_name))
+        shutil.rmtree('dataset/'+dataset_name)
+    except OSError as e:
+        print ("Fail to deleting dataset %s: %s - %s." % (dataset_name, e.filename, e.strerror))
 
-if __name__ == "__main__":
+def process():
     #variables
+    driver, wait = init_driver_wait()
     datast_name = ''
     n = 0
     img_classes = []
@@ -106,6 +124,4 @@ if __name__ == "__main__":
     print('Complete!\n')
     #view data
     print('Displaying data')
-    
-
     driver.close()
