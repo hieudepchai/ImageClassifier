@@ -6,22 +6,24 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from time import sleep
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from fastai.vision import *
 import platform
 import shutil
-
+import os
 
 
 def init_driver_wait():
-    currOS = platform.system()
-    if currOS == 'Windows':
-        chromepath = "chromedriver.exe"
-    else:
-        chromepath = "/usr/bin/chromedriver"
+    # currOS = platform.system()
+    # if currOS == 'Windows':
+    #     chromepath = "chromedriver.exe"
+    # else:
+    #     chromepath = "/usr/bin/chromedriver"
     # chromeOptions = webdriver.ChromeOptions()
     # chromeOptions.add_argument("--headless")
     # driver = webdriver.Chrome(chromepath, chrome_options=chromeOptions)
-    driver = webdriver.Chrome(chromepath)
+    # driver = webdriver.Chrome(chromepath)
+    driver = webdriver.Firefox(executable_path='geckodriver.exe')
     wait = WebDriverWait(driver, 5)
     return driver, wait
     
@@ -71,23 +73,17 @@ def input_file():
             print('Class {}: {}'.format(iclass+1, img_classes[iclass]))
         inputfile.close()
         return dataset_name, n, img_classes
-def delete_dataset(dataset_name):
-    try:
-        print('Deleting dataset {}'.format(dataset_name))
-        shutil.rmtree('dataset/'+dataset_name)
-    except OSError as e:
-        print ("Fail to deleting dataset %s: %s - %s." % (dataset_name, e.filename, e.strerror))
 
-def process():
+def process(in_dataset_name, in_n, in_img_classes):
     #variables
     driver, wait = init_driver_wait()
-    datast_name = ''
+    dataset_name = ''
     n = 0
     img_classes = []
     img_urls = {}
     #input
     print('Input section: ')
-    dataset_name, n, img_classes = input_file()
+    dataset_name, n, img_classes = in_dataset_name, in_n, in_img_classes
     print()
     #create path
     print('Creating a new directory according to classes ...')
@@ -102,6 +98,7 @@ def process():
     for img_class in img_classes:
         img_urls[img_class] = get_image_urls(driver, wait, img_class)
     print('Complete!\n')
+    driver.close()
     #generate url csv
     print('Generating url csv files ...')
     exportURLs(img_urls, path)
@@ -116,6 +113,16 @@ def process():
         filepath= path/filename
         download_images(filepath, dest, max_pics=200, max_workers=3)
     print('Complete!\n')
+    #delete csv files
+    print('Deleting csv files ...')
+    for img_class in img_classes:
+        print('-- deleteing {}.csv'.format(img_class))
+        filename = img_class+'.csv'
+        try:
+            os.remove('dataset/'+dataset_name+'/'+filename)
+        except OSError as e:
+            print ("Fail to deleting file %s: %s - %s." % (filename, e.filename, e.strerror))
+    print('Comlete!!!\\n')
     #verify images
     print('Verifying images (removing images that cannot be opened) ...')
     for img_class in img_classes:
@@ -124,4 +131,6 @@ def process():
     print('Complete!\n')
     #view data
     print('Displaying data')
-    driver.close()
+
+# if __name__ == "__main__":
+#     process()
